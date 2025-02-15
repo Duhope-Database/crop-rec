@@ -317,54 +317,45 @@ app.post('/api/crop-recommendation', async (req, res) => {
   }
 });
 
-// Market price endpoint
-app.get('/api/market-price/:crop', async (req, res) => {
-  try {
-    const { crop } = req.params;
+// Dummy market prices data
+const marketPrices = {
+  rice: { priceRange: "$1.2 - $1.5 per kg", trend: "Stable", outlook: "Expected to rise due to demand" },
+  wheat: { priceRange: "$0.9 - $1.2 per kg", trend: "Increasing", outlook: "Likely to remain high" },
+  maize: { priceRange: "$0.7 - $1.0 per kg", trend: "Decreasing", outlook: "May stabilize soon" },
+  potato: { priceRange: "$0.5 - $0.8 per kg", trend: "Stable", outlook: "No major changes expected" },
+  tomato: { priceRange: "$1.0 - $1.4 per kg", trend: "Volatile", outlook: "Might drop due to high supply" },
+  onion: { priceRange: "$0.8 - $1.3 per kg", trend: "Increasing", outlook: "Short supply expected" },
+  soybean: { priceRange: "$1.5 - $2.0 per kg", trend: "Stable", outlook: "Slight increase expected" },
+  coffee: { priceRange: "$3.0 - $4.2 per kg", trend: "Increasing", outlook: "Global demand is strong" },
+  tea: { priceRange: "$2.5 - $3.5 per kg", trend: "Stable", outlook: "Likely to remain unchanged" },
+  banana: { priceRange: "$0.6 - $0.9 per kg", trend: "Decreasing", outlook: "Seasonal drop in prices" },
+  apple: { priceRange: "$2.0 - $3.0 per kg", trend: "Increasing", outlook: "Demand-driven price hike" },
+  orange: { priceRange: "$1.2 - $1.8 per kg", trend: "Stable", outlook: "Supply and demand balanced" },
+  cassava: { priceRange: "$0.4 - $0.7 per kg", trend: "Stable", outlook: "Expected to remain steady" },
+  beans: { priceRange: "$1.8 - $2.5 per kg", trend: "Increasing", outlook: "Export demand rising" },
+  sugarcane: { priceRange: "$0.3 - $0.6 per kg", trend: "Stable", outlook: "No major fluctuations expected" },
+  cotton: { priceRange: "$1.5 - $2.3 per kg", trend: "Increasing", outlook: "Rising textile industry demand" },
+  peanuts: { priceRange: "$1.3 - $1.8 per kg", trend: "Stable", outlook: "Expected to remain steady" },
+  millet: { priceRange: "$0.8 - $1.2 per kg", trend: "Stable", outlook: "Resistant to fluctuations" },
+  barley: { priceRange: "$1.0 - $1.4 per kg", trend: "Decreasing", outlook: "Production increase expected" },
+  spinach: { priceRange: "$0.9 - $1.3 per kg", trend: "Stable", outlook: "No major price movement" },
+  cabbage: { priceRange: "$0.6 - $1.0 per kg", trend: "Decreasing", outlook: "Good harvest leading to lower prices" },
+  carrot: { priceRange: "$1.0 - $1.5 per kg", trend: "Increasing", outlook: "Demand in processed foods growing" },
+  lettuce: { priceRange: "$0.8 - $1.2 per kg", trend: "Stable", outlook: "Supply matches demand" },
+  pepper: { priceRange: "$1.5 - $2.2 per kg", trend: "Increasing", outlook: "Export demand rising" }
+};
 
-    if (!crop) {
-      return res.status(400).json({ error: 'Please provide a crop name' });
-    }
+app.get('/api/market-price/:crop', (req, res) => {
+  const crop = req.params.crop.toLowerCase();
 
-    const response = await fetch(GEMINI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "gemini-1.5-flash", // Replace with a valid Gemini model
-        messages: [
-          {
-            role: "system",
-            content: "You are a market analyst who provides current market prices for agricultural products."
-          },
-          {
-            role: "user",
-            content: `Please provide the current market price range for ${crop}. 
-            Include:
-            - Current price range per kg/quintal
-            - Recent price trends
-            - Market outlook
-            Provide the information in a structured format.`
-          }
-        ],
-        max_tokens: 500 // Adjust token limit as needed
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to get market price');
-    }
-
-    res.json({
-      marketPrice: data.choices[0].message.content
-    });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: error.message });
+  if (!marketPrices[crop]) {
+    return res.status(404).json({ error: `Market price data not available for ${crop}` });
   }
+
+  res.json({
+    crop,
+    marketPrice: marketPrices[crop]
+  });
 });
 
 // Health check endpoint
